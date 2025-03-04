@@ -5,7 +5,7 @@ import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import fs from "fs";
 
 const HTTP_PORT: number = 3000;
-const VIDEO_FILE: string = "recorded_video.mp4";
+const VIDEO_FILE: string = "out/recorded_video.mp4";
 
 // Configurable video parameters
 const VIDEO_WIDTH: number = 640;   // Default width - adjust as needed

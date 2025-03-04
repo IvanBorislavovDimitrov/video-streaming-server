@@ -25,6 +25,7 @@
     <!-- Recording Controls -->
     <button id="startRecording">Start Recording</button>
     <button id="stopRecording">Stop Recording</button>
+    <div id="recordingMessage" style="display:none; color: green; margin-top: 10px;">Recording started...</div>
     <a id="downloadLink" style="display:none">Download Video</a>
 
     <script>
@@ -35,13 +36,12 @@
             const canvas = document.getElementById("videoCanvas");
             const ctx = canvas.getContext("2d");
 
-            canvas.width = 1280;  // Default width
-            canvas.height = 720; // Default height
+            canvas.width = 1280;
+            canvas.height = 720;
 
             ws.onopen = () => console.log("WebSocket connected!");
             ws.onerror = (e) => console.error("WebSocket error!", e);
 
-            // Create a reusable image instance
             const img = new Image();
             img.onload = () => {
                 if (canvas.width !== img.width || canvas.height !== img.height) {
@@ -67,13 +67,15 @@
             // Recording controls
             document.getElementById("startRecording").addEventListener("click", () => {
                 fetch("/start-recording");
+                document.getElementById("recordingMessage").style.display = "block";
             });
 
             document.getElementById("stopRecording").addEventListener("click", async () => {
                 await fetch("/stop-recording");
-                document.getElementById("downloadLink").href = "/recorded_video.mp4";
+                document.getElementById("downloadLink").href = "/out/recorded_video.mp4";
                 document.getElementById("downloadLink").style.display = "block";
                 document.getElementById("downloadLink").innerText = "Download Video";
+                document.getElementById("recordingMessage").style.display = "none";
             });
         });
     </script>
