@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream</title>
+    <style>
+        #videoCanvas {
+            border: 1px solid #ccc;
+            max-width: 100%;
+        }
+        .log {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Stream</h1>
+    <canvas id="videoCanvas"></canvas>
+    <div id="log" class="log"></div>
+
+    <!-- Recording Controls -->
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording">Stop Recording</button>
+    <a id="downloadLink" style="display:none">Download Video</a>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const ws = new WebSocket("ws://" + window.location.host);
+            ws.binaryType = "arraybuffer";
+
+            const canvas = document.getElementById("videoCanvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = 1280;  // Default width
+            canvas.height = 720; // Default height
+
+            ws.onopen = () => console.log("WebSocket connected!");
+            ws.onerror = (e) => console.error("WebSocket error!", e);
+
+            // Create a reusable image instance
+            const img = new Image();
+            img.onload = () => {
+                if (canvas.width !== img.width || canvas.height !== img.height) {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                }
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(img.src);
+            };
+
+            ws.onmessage = (event) => {
+                if (event.data instanceof ArrayBuffer) {
+                    const blob = new Blob([event.data], { type: "image/jpeg" });
+                    img.src = URL.createObjectURL(blob);
+                    console.log(`Received frame: ${event.data.byteLength} bytes`);
+                } else {
+                    console.error("Received invalid data format");
+                }
+            };
+
+            ws.onclose = () => console.log("WebSocket disconnected!");
+
+            // Recording controls
+            document.getElementById("startRecording").addEventListener("click", () => {
+                fetch("/start-recording");
+            });
+
+            document.getElementById("stopRecording").addEventListener("click", async () => {
+                await fetch("/stop-recording");
+                document.getElementById("downloadLink").href = "/recorded_video.mp4";
+                document.getElementById("downloadLink").style.display = "block";
+                document.getElementById("downloadLink").innerText = "Download Video";
+            });
+        });
+    </script>
+</body>
+</html>
